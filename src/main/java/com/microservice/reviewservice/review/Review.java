@@ -1,8 +1,9 @@
 package com.microservice.reviewservice.review;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.project.jobapp.company.Company;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class Review {
@@ -13,12 +14,9 @@ public class Review {
     private String title;
     private String description;
     private Double rating;
+    private Long companyId;
 
-    @JsonIgnore
-    @ManyToOne
-    private Company company;
-
-    public Review() {
+    public Review() { // non - parameterized constructor
     }
 
     public Long getId() {
@@ -53,11 +51,11 @@ public class Review {
         this.rating = rating;
     }
 
-    public Company getCompany() {
-        return company;
+    public Long getCompanyId() {
+        return companyId;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

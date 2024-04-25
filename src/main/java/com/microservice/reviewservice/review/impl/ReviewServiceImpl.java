@@ -1,23 +1,20 @@
 package com.microservice.reviewservice.review.impl;
 
-import com.project.jobapp.company.Company;
-import com.project.jobapp.company.CompanyService;
-import com.project.jobapp.review.Review;
-import com.project.jobapp.review.ReviewRepository;
-import com.project.jobapp.review.ReviewService;
+import com.microservice.reviewservice.review.Review;
+import com.microservice.reviewservice.review.ReviewRepository;
+import com.microservice.reviewservice.review.ReviewService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final CompanyService companyService;
 
-    public ReviewServiceImpl(ReviewRepository reviewRepository, CompanyService companyService) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository) {
         this.reviewRepository = reviewRepository;
-        this.companyService = companyService;
     }
 
     /**
@@ -32,75 +29,56 @@ public class ReviewServiceImpl implements ReviewService {
     /**
      * @param companyId Company id
      * @param review    Review
-     * @return
+     * @return Review
      */
     @Override
     public Review createReview(Long companyId, Review review) {
-        Company company = companyService.getCompanyById(companyId);
-        if (company != null) {
-            review.setCompany(company);
+        if (companyId != null && review != null) {
+            review.setCompanyId(companyId);
             return reviewRepository.saveAndFlush(review);
         }
         return null;
     }
 
     /**
-     * @param companyId
-     * @param reviewId
-     * @return
+     * @param reviewId Review id
+     * @return Review
      */
     @Override
-    public Review getReviewById(Long companyId, Long reviewId) {
-        List<Review> reviews = reviewRepository.findByCompanyId(companyId);
-        return reviews.stream().filter(review -> review.getId().equals(reviewId)).findFirst().orElse(null);
+    public Review getReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId).orElseThrow(() -> new NoSuchElementException("Review Not Found!"));
     }
 
     /**
-     * @param companyId
-     * @param reviewId
-     * @param review
-     * @return
+     * @param reviewId Review id
+     * @param review Review
+     * @return boolean
      */
     @Override
-    public boolean updateReview(Long companyId, Long reviewId, Review review) {
-        Company company = companyService.getCompanyById(companyId);
-        if (company != null) {
-            review.setCompany(company);
-            review.setId(reviewId);
-            reviewRepository.save(review);
+    public boolean updateReview(Long reviewId, Review review) {
+        Review review1 = reviewRepository.findById(reviewId).orElse(null);
+        if (review1 != null) {
+            review1.setTitle(review.getTitle());
+            review1.setDescription(review.getDescription());
+            review1.setCompanyId(review.getCompanyId());
+            review1.setRating(review.getRating());
+            reviewRepository.save(review1);
             return true;
         }
         return false;
     }
 
     /**
-     * @param companyId Company id
      * @param reviewId Review id
      * @return boolean
      */
     @Override
-    public boolean deleteReview(Long companyId, Long reviewId) {
-        Review review = getReviewById(companyId, reviewId);
+    public boolean deleteReview(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review != null) {
-            Company company = review.getCompany();
-            company.getReviews().remove(review);
-            companyService.updateCompanyById(companyId, company);
             reviewRepository.deleteById(reviewId);
             return true;
         }
         return false;
     }
-
-    /*private void updateReviewDetails(Review response, Review review) {
-        if (review.getTitle() != null) {
-            response.setTitle(review.getTitle());
-        }
-        if (review.getDescription() != null) {
-            response.setDescription(review.getDescription());
-        }
-        if (review.getRating() != null) {
-            response.setRating(review.getRating());
-        }
-        reviewRepository.save(response);
-    }*/
 }
